@@ -5,6 +5,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllProductsDTO } from './dto/get-all-products.dto';
 import { ProductDTO } from './dto/product.dto';
 
+const DEFAULT_PAGE_SIZE = 50;
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -13,17 +15,19 @@ export class ProductService {
   ) {}
 
   async getAllProducts(filters: GetAllProductsDTO): Promise<ProductDTO[]> {
-    if (filters.categories && filters.categories.length) {
-      const products = [];
-      for (let i = 0; i < filters.categories.length; i++) {
-        products.push(
-          await this.prismaService.product.findFirst({
-            where: { category: filters.categories[i] },
-          }),
-        );
-      }
-    }
-    return this.prismaService.product.findMany();
+    const take = filters.pageSize || DEFAULT_PAGE_SIZE;
+    const pageNumber = filters.pageNumber || 1;
+    const skip = take * (pageNumber - 1);
+
+    return this.prismaService.product.findMany({
+      where: {
+        category: {
+          in: filters.categories,
+        },
+      },
+      take,
+      skip,
+    });
   }
 
   async getProductById(id: number): Promise<ProductDTO> {
