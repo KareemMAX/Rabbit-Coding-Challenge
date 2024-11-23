@@ -51,4 +51,28 @@ describe('ProductController (e2e)', () => {
         expect(body.length).toEqual(20);
       });
   });
+
+  it('/product (GET) with categories', () => {
+    return request(app.getHttpServer())
+      .get('/product?categories[]=Product 1 Category')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.length).toEqual(1);
+      });
+  });
+
+  it("/product (GET) with categories (category doesn't exist)", () => {
+    return request(app.getHttpServer())
+      .get('/product?categories[]=Non-existing')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.length).toEqual(0);
+      });
+  });
+
+  it('/product (GET) with categories (string instead of array)', () => {
+    return request(app.getHttpServer())
+      .get('/product?categories=Product 1 Category')
+      .expect(400);
+  });
 });
