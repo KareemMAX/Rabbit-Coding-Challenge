@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Post,
   Query,
   UseInterceptors,
@@ -24,6 +25,11 @@ export class OrderController {
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(60000)
   async getTop10OrderedProducts(@Query() filters: Top10OrderedProductsDTO) {
-    return this.orderService.getTop10OrderedProducts(filters);
+    const response = await this.orderService.getTop10OrderedProducts(filters);
+    if (!response || !response.length) {
+      throw new NotFoundException();
+    }
+
+    return response;
   }
 }
