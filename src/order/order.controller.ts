@@ -1,7 +1,15 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDTO } from './dto/create-order-dto';
 import { Top10OrderedProductsDTO } from './dto/top-10-ordered-products-dto';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('order')
 export class OrderController {
@@ -13,6 +21,8 @@ export class OrderController {
   }
 
   @Get('top-10')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60000)
   async getTop10OrderedProducts(@Query() filters: Top10OrderedProductsDTO) {
     return this.orderService.getTop10OrderedProducts(filters);
   }
