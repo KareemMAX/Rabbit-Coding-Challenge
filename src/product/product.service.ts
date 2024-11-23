@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProductRepository } from './product.repository';
 import { CreateProductDto } from './dto/create-product.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllProductsDTO } from './dto/get-all-products.dto';
 import { ProductDTO } from './dto/product.dto';
 
@@ -9,24 +8,26 @@ const DEFAULT_PAGE_SIZE = 50;
 
 @Injectable()
 export class ProductService {
-  constructor(
-    private readonly productsRepository: ProductRepository,
-    private prismaService: PrismaService,
-  ) {}
+  constructor(private readonly productsRepository: ProductRepository) {}
 
   async getAllProducts(filters: GetAllProductsDTO): Promise<ProductDTO[]> {
-    const take = filters.pageSize || DEFAULT_PAGE_SIZE;
+    const limit = filters.pageSize || DEFAULT_PAGE_SIZE;
     const pageNumber = filters.pageNumber || 1;
-    const skip = take * (pageNumber - 1);
+    const offset = limit * (pageNumber - 1);
 
-    return this.prismaService.product.findMany({
-      where: {
-        category: {
-          in: filters.categories,
+    if (filters.categories && filters.categories.length) {
+      return this.productsRepository.findByCategories(
+        filters.categories || [],
+        {
+          limit,
+          offset,
         },
-      },
-      take,
-      skip,
+      );
+    }
+
+    return this.productsRepository.findAll({
+      limit,
+      offset,
     });
   }
 
